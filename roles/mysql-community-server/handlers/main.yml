@@ -1,0 +1,20 @@
+---
+  - name: systemd | mysql | started
+    systemd:
+      name: mysql
+      state: started
+
+  - name: systemd | mysql | stopped
+    systemd:
+      name: mysql
+      state: stopped
+
+  - name: systemd | mysql | restarted
+    systemd:
+      name: mysql
+      state: restarted
+
+  - name: systemd | mysql | reloaded
+    systemd:
+      name: mysql
+      state: reloaded

@@ -1,0 +1,127 @@
+---
+
+- name: stopping confluence if its running
+  systemd:
+    name: confluence
+    state: stopped
+  ignore_errors: yes
+  become: true
+
+- name: "ensure the confluence system user '{{ confluence_system_user }}' exists"
+  user:
+    name: "{{ confluence_system_user }}"
+  become: true
+
+- name: "ensure confluence home directory '{{ confluence_home_directory }}'"
+  file:
+    path: "{{ confluence_home_directory }}"
+    state: directory
+  become: true
+
+- name: "ensure confluence install directory '{{ confluence_install_directory }}'"
+  file:
+    path: "{{ confluence_install_directory }}"
+    state: directory
+  become: true
+
+- name: "downloading {{ confluence_binary_download_url }}"
+  get_url:
+    url: "{{ confluence_binary_download_url }}"
+    dest: "/tmp/{{ confluence_binary_download_url | basename }}"
+    mode: '0644'
+
+- name: "unarchive '{{ confluence_binary_download_url | basename }}' into '{{ confluence_install_directory }}'"
+  unarchive:
+    src: "/tmp/{{ confluence_binary_download_url | basename }}"
+    dest: "{{ confluence_install_directory }}"
+    remote_src: true
+    extra_opts:
+      - --strip-components=1
+  become: true
+
+- name: "downloading {{ confluence_mysql_80_connector_url_debian10 }}"
+  get_url:
+    url: "{{ confluence_mysql_80_connector_url_debian10 }}"
+    dest: "/tmp/{{ confluence_mysql_80_connector_url_debian10 | basename }}"
+    mode: '0644'
+
+- name: Install java connector Package
+  apt:
+    deb: "/tmp/{{ confluence_mysql_80_connector_url_debian10 | basename }}"
+
+- name: "copy 'mysql-connector-java-{{ confluence_mysql_connector_version }}.jar' to '{{ confluence_install_directory }}/confluence/WEB-INF/lib'"
+  copy:
+    src: "/usr/share/java/mysql-connector-java-{{ confluence_mysql_connector_version }}.jar"
+    dest: "{{ confluence_install_directory }}/confluence/WEB-INF/lib/mysql-connector.jar"
+    remote_src: yes
+
+- name: ensure confluence home directory is configued in confluence installation file
+  lineinfile:
+    path: "{{ confluence_install_directory }}/confluence/WEB-INF/classes/confluence-init.properties"
+    line: "confluence.home={{ confluence_home_directory }}"
+  become: true
+
+- name: ensure permissions are correct for home and install directory
+  shell: "{{ item }}"
+  become: true
+  with_items:
+    - "chown -R {{ confluence_system_user }} {{ confluence_home_directory }}"
+    - "chmod -R u=rwx,go-rwx {{ confluence_home_directory }}"
+    - "chown -R {{ confluence_system_user }} {{ confluence_install_directory }}"
+    - "chmod -R u=rwx,go-rwx {{ confluence_install_directory }}"
+
+- name: provision confluence systemd startup file
+  template:
+    src: confluence.service.j2
+    dest: /lib/systemd/system/confluence.service
+    mode: '0644'
+  become: true
+
+- name: ensure confluence home directory is configued in confluence installation file
+  lineinfile:
+    path: "{{ confluence_install_directory }}/confluence/WEB-INF/classes/confluence-init.properties"
+    line: "confluence.home={{ confluence_home_directory }}"
+  become: true
+
+- name: "ensure context path '{{ confluence_context_path }}' is set in server.xml"
+  xml:
+    path: "{{ confluence_install_directory }}/conf/server.xml"
+    xpath: /Server/Service/Engine/Host/*[1]
+    attribute: path
+    value: "{{ confluence_context_path }}"
+
+- name: ensure scheme is https in server.xml
+  xml:
+    path: "{{ confluence_install_directory }}/conf/server.xml"
+    xpath: /Server/Service/Connector
+    attribute: scheme
+    value: "https"
+
+- name: ensure scheme is https in server.xml
+  xml:
+    path: "{{ confluence_install_directory }}/conf/server.xml"
+    xpath: /Server/Service/Connector
+    attribute: secure
+    value: "true"
+
+- name: ensure scheme is https in server.xml
+  xml:
+    path: "{{ confluence_install_directory }}/conf/server.xml"
+    xpath: /Server/Service/Connector
+    attribute: proxyName
+    value: "{{ confluence_proxy_name }}"
+
+- name: ensure scheme is https in server.xml
+  xml:
+    path: "{{ confluence_install_directory }}/conf/server.xml"
+    xpath: /Server/Service/Connector
+    attribute: proxyPort
+    value: "{{ confluence_proxy_port }}"
+
+- name: ensure confluence is started and enabled
+  systemd:
+    name: confluence
+    enabled: true
+    daemon_reload: yes
+    state: started
+  become: true

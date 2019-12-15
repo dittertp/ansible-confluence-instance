@@ -1,0 +1,85 @@
+---
+
+- name: Clean up nginx stuff
+  file:
+    path: "{{ item }}"
+    state: absent
+  with_items:
+    - /etc/nginx/sites-available
+    - /etc/nginx/sites-enabled
+    - /etc/nginx/snippets/snakeoil.conf
+
+- name: Ensure the letsencrypt directory is created
+  file:
+    path: "{{ letsencrypt_path }}"
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: Create nginx conf.d dir
+  file:
+    path: /etc/nginx/conf.d
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: Create nginx snippets dir
+  file:
+    path: /etc/nginx/snippets
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: Generate dhparams file
+  shell: "openssl dhparam -out {{ nginx_dhparams_file }} {{ nginx_dhparams_keysize }}"
+  args:
+    creates: "{{ nginx_dhparams_file }}"
+
+- name: Override default config
+  template:
+    src: "nginx.conf.j2"
+    dest: /etc/nginx/nginx.conf
+    owner: root
+    group: root
+    mode: '0644'
+  become: yes
+  notify: systemd | nginx | reloaded
+
+- name: Create letsencrypt config snippet
+  template:
+    src: "letsencrypt.conf.j2"
+    dest: "{{ nginx_conf_snippets_path }}/letsencrypt.conf"
+    owner: root
+    group: root
+    mode: '0644'
+  become: yes
+  notify: systemd | nginx | reloaded
+
+- name: Create default config
+  template:
+    src: "default.conf.j2"
+    dest: /etc/nginx/conf.d/default.conf
+    owner: root
+    group: root
+    mode: '0644'
+  become: yes
+  register: nginx_default_conf_obj
+
+- name: provide confluence config
+  template:
+    src: "confluence.conf.j2"
+    dest: /etc/nginx/conf.d/confluence.conf
+    owner: root
+    group: root
+    mode: '0644'
+  become: yes
+  notify: systemd | nginx | reloaded
+
+- name: Reload nginx when default config has changed
+  service:
+    name: nginx
+    state: reloaded
+  when: nginx_default_conf_obj.changed

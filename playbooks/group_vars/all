@@ -1,0 +1,9 @@
+---
+
+confluence_target_version: "7.2.0"
+
+# fqdn for your confluence instance e.g. "confluence.example.com"
+confluence_proxy_name: "<changeme>"
+
+# optional context path: e.g. "/confluence"
+# confluence_context_path: ""

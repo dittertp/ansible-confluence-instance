@@ -1,0 +1,17 @@
+---
+
+confluence_system_user: "confluence"
+confluence_target_version: "7.2.0"
+confluence_binary_download_url: "https://www.atlassian.com/software/confluence/downloads/binary/atlassian-confluence-{{ confluence_target_version }}.tar.gz"
+
+confluence_mysql_51_connector_url: "https://dev.mysql.com/get/Downloads/Connector-J/mysql-connector-java-5.1.48.zip"
+
+confluence_mysql_connector_version: "8.0.18"
+confluence_mysql_80_connector_url_debian10: "https://dev.mysql.com/get/Downloads/Connector-J/mysql-connector-java_{{ confluence_mysql_connector_version }}-1debian10_all.deb"
+
+confluence_home_directory: "/var/atlassian/confluence"
+confluence_install_directory: "/opt/atlassian/confluence"
+
+confluence_proxy_name: "confluence.example.com"
+confluence_proxy_port: "443"
+confluence_context_path: ""

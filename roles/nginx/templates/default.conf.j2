@@ -1,0 +1,22 @@
+server {
+    listen 80 default;
+
+    include /etc/nginx/snippets/letsencrypt.conf;
+
+    location / {
+        return 301 https://$host$request_uri;
+    }
+}
+
+{% if (letsencrypt_dryrun is not defined or not letsencrypt_dryrun|bool) and (letsencrypt_use_wildcard_cert is defined and letsencrypt_use_wildcard_cert|bool) %}
+server {
+    listen 443 ssl http2 default;
+
+    ssl_certificate /etc/ssl/certs/ssl-cert-snakeoil.pem;
+    ssl_certificate_key /etc/ssl/private/ssl-cert-snakeoil.key;
+
+    location / {
+        return 404;
+    }
+}
+{% endif %}

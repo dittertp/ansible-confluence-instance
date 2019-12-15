@@ -1,0 +1,10 @@
+---
+
+letsencrypt_use_wildcard_cert: true
+letsencrypt_dryrun: false
+letsencrypt_path: /var/www/letsencrypt
+
+nginx_dhparams_file: /etc/nginx/dhparam.pem
+nginx_dhparams_keysize: 2048
+
+nginx_conf_snippets_path: /etc/nginx/snippets

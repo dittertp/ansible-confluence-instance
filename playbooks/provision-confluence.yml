@@ -1,0 +1,17 @@
+---
+
+- hosts: confluence
+  gather_facts: false
+  become: true
+  roles:
+    - python3
+
+- hosts: confluence
+  gather_facts: true
+  become: true
+  roles:
+    - vim
+    - adoptopenjdk
+    - mysql-community-server
+    - confluence
+    - nginx

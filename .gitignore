@@ -1,0 +1,5 @@
+vendor
+.idea
+*.retry
+composer.lock
+composer.dev.lock

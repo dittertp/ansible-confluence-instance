@@ -1,0 +1,26 @@
+---
+
+- name: add adoptopenjdk apt-key
+  apt_key:
+    url: "https://adoptopenjdk.jfrog.io/adoptopenjdk/api/gpg/key/public"
+    state: present
+  become: true
+
+- name: ensure apt-transport-https and software-properties-common are installed
+  apt:
+    name: ['apt-transport-https', 'software-properties-common']
+    state: present
+  become: true
+
+- name: adding adoptopenjdk repository
+  apt_repository:
+    repo: "deb https://adoptopenjdk.jfrog.io/adoptopenjdk/deb/ {{ ansible_distribution_release }} main"
+    state: present
+  become: true
+
+- name: install default adoptopenjdk
+  apt:
+    name: "adoptopenjdk-{{ adoptopenjdk_default_version }}-hotspot-jre"
+    state: present
+  become: true
+

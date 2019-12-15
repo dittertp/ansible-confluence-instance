@@ -1,0 +1,55 @@
+---
+
+- name: add mysql apt-key
+  apt_key:
+    data: "{{ mysql_gpg_public_key }}"
+    state: present
+  become: true
+
+- name: ensure apt-transport-https and software-properties-common are installed
+  apt:
+    name: ['apt-transport-https', 'software-properties-common']
+    state: present
+  become: true
+
+- name: adding mysql repository
+  apt_repository:
+    repo: "deb http://repo.mysql.com/apt/debian/ {{ ansible_distribution_release }} mysql-8.0"
+    state: present
+  become: true
+
+- name: install mysql packages
+  apt:
+    name: ["mysql-client", "mysql-common", "mysql-server"]
+    state: present
+  become: true
+
+- name: Deletes anonymous MySQL server user for ansible_fqdn
+  mysql_user:
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+    login_user: root
+    user: ""
+    host: "{{ ansible_fqdn }}"
+    state: "absent"
+  become: true
+
+- name: Deletes anonymous MySQL server user for localhost
+  mysql_user:
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+    user: ""
+    state: "absent"
+  become: true
+
+- name: Removes the MySQL test database
+  mysql_db:
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+    db: test
+    state: absent
+  become: true
+
+- name: provision mysqld configuration file
+  template:
+    src: mysqld.cnf.j2
+    dest: /etc/mysql/conf.d/mysqld.cnf
+    mode: '0644'
+  notify: systemd | mysql | restarted
