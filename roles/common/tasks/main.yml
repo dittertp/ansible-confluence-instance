@@ -1,0 +1,14 @@
+---
+
+- name: install base packages
+  apt:
+    name: "{{  base_packages }}"
+    state: present
+  become: true
+
+- name: install python dependencies stage1
+  pip:
+    name: "{{ pip3_packages }}"
+    state: present
+    executable: "/usr/bin/pip3"
+  become: true

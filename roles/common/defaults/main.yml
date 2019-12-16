@@ -1,0 +1,11 @@
+---
+
+
+base_packages:
+  - sudo
+  - gpg
+  - python3-pip
+
+pip3_packages:
+  - lxml
+  - pymysql

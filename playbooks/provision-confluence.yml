@@ -10,6 +10,7 @@
   gather_facts: true
   become: true
   roles:
+    - common
     - vim
     - adoptopenjdk
     - mysql-community-server
